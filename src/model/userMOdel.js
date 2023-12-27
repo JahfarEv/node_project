@@ -1,29 +1,39 @@
-const mongoose =require('mongoose')
-const validator = require('validator')
+const mongoose = require("mongoose");
+const validator = require("validator");
 const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true, 'pls enter the name']
+  name: {
+    type: String,
+    required: [true, "pls enter the name"],
+  },
+  email: {
+    type: String,
+    required: [true, "pls enter the email"],
+    lowercase: true,
+    validate: [validator.isEmail, "pls enter a valid email"],
+  },
+  password: {
+    type: String,
+    required: [true, "pls enter password"],
+  },
+
+  confrmPassword: {
+    type: String,
+    required: [true, "pls confirm your password"],
+    validate: {
+      validator: function (val) {
+        return val == this.password;
+      },
+      message: 'password & confirm password does not match!'
     },
-    email:{
-        type:String,
-        required:[true, 'pls enter the email'],
-        unique:true,
-        lowercase: true,
-        validate:[validator.isEmail,'pls enter a valid email']
-    },
-    photo: String,
-    password: {
-        type:String,
-        required: [true, 'pls enter a password'],
-        minlength:8
-    },
-    confrmPassword:{
-        type:String,
-        required:[true, 'pls confirm your password']
-    }
+  },
+});
+
+userSchema.pre('save', function(next){
+    if(!this.isModified('password')) return next()
 })
 
-const user = mongoose.model('user', userSchema);
+
+
+const user = mongoose.model("user", userSchema);
 
 module.exports = user;
