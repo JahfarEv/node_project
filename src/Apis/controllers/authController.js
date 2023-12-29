@@ -1,17 +1,52 @@
-const user = require("../../model/userMOdel");
-const asyncErrorHandler = require('../../Utils/asyncErrorHandler')
+const User = require("../../model/userMOdel");
+const asyncErrorHandler = require("../../Utils/asyncErrorHandler");
+const jwt = require("jsonwebtoken");
+const customError = require('../../Utils/customError')
 
-exports.signup =asyncErrorHandler (async (req, res, next) => {
+const signToken = id=>{
+  return jwt.sign({id}, process.env.SECRET_STR, {
+      expiresIn: process.env.LOGIN_EXPIRES,
+    });
+}
+
+exports.signup = asyncErrorHandler(async (req, res, next) => {
+  const newUser = await User.create(req.body);
+  //geneate token
+  // const token = signToken(newUser._id) 
+
+  res.status(201).json({
+    status: "sucess",
+    data: {
+      user: newUser,
+    },
+  });
+});
+
+exports.login = asyncErrorHandler (async (req, res, next) => {
+   const email = req.body.email;
+   const password = req.body.password;
+
+   if(!email || !password){
+      const error =new customError('please provide email ID & password for login In!',400)
+      return next(error)
+
+   }
+   const user =await User.findOne({email}).select('+password');
+   console.log(user.password);
+  //  const isMatch = user.comparePasswordInDb(password, user.password)
+
+   if(!user || !(await user.comparePasswordInDb(password,user.password))){
+      const error= new customError ('Invalid Email or Password',400)
+      return next(error)
+   }
    
-   const newUser= await user.create(req.body);
-   res.status(201).json({
+const token = signToken(user._id)
+
+   res.status(200).json({
       status:'sucess',
-      data: {
-         user: newUser
-      }
+      token,
+      user
    })
 
-})
+});
 //.module.exports = signup;
-
-
