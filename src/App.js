@@ -7,6 +7,7 @@ const app = express();
 app.use(express.json())
 app.use("/api/users", authRouter);
 app.use("/api/admin/",adminRouter)
+
 app.all("*", (req, res, next) => {
     // res.status(404).json({
     //     status:'fail',
