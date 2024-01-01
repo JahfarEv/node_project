@@ -3,6 +3,8 @@ const asyncErrorHandler = require("../../Utils/asyncErrorHandler");
 const jwt = require("jsonwebtoken");
 const customError = require("../../Utils/customError");
 const product = require("../../model/productModel");
+const { default: mongoose } = require("mongoose");
+
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.SECRET_STR, {
@@ -52,9 +54,46 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
   });
 });
 
+//view products
+exports.viewProducts = async(req,res)=>{
+const products = await product.find()
+if(!products){
+  return res.status(404).json({
+    status:'error',
+    message:'product not found'
+  })
+}
+return res.status(200).json({
+  status:'succes',
+  message:'product fetched succesfully',
+  data:{
+    products
+  }
+})
+}
+
 //View the products by category
 
-const productCategory = async (req, res) => {
+// exports.productByCategory = async (req, res) => {
+//   const productCategory = req.params.category
+//   if(!mongoose.Types.ObjectId.isValid(productCategory)){
+//     res.status(404).json({
+//       status:'error',
+//       message:'product not found'
+//     })
+//   }
+//   const products = await product.filter(prdcts=>prdcts.productCategory=== productCategory)
+//   if(!products){
+//     next(new customError("product not found",404))
+//   }
+//   else{
+//     res.status(200).json({
+//       status:'succes',
+//       data:{
+//         products
+//       }
+//     })
+//   }
   
-};
+// };
 //.module.exports = signup;

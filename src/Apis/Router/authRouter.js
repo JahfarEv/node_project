@@ -5,7 +5,10 @@ const router = express.Router();
 
 router.route('/signup').post(authController.signup);
 router.route('/login').post(authController.login);
-// router.route('/product').post(authController.createProduct);
+router.route('/viewproducts').get(authController.viewProducts);
+
+
+// router.route('/products/:categoryname').get(authController.productByCategory);
 
 
 
