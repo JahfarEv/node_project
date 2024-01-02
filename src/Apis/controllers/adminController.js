@@ -59,7 +59,8 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 
   const users = await user.findById(userId);
   if (!users) {
-    next(new CustomError("User not found", 404));
+    const error = new CustomError('not found',404)
+    return next(error)
   } else {
     res.status(200).json({
       status: "success",
@@ -73,7 +74,7 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 
 //create products
 
-const createProduct = asyncErrorHandler(async (req, res, next) => {
+const createProduct = asyncErrorHandler(async (req, res) => {
   const newProduct = await product.create(req.body);
   
   res.status(201).json({
@@ -86,10 +87,9 @@ const createProduct = asyncErrorHandler(async (req, res, next) => {
 
 //all products by category
 const allProduct = asyncErrorHandler (async(req,res,next)=>{
-const proCtegory = req.params.category
-console.log(proCtegory);
-const productCategory =await product.findOne(proCtegory)
-
+const category = req.params.category
+const productCategory =await product.find({category})
+console.log(productCategory);
 if(!productCategory){
   const error = new CustomError("product not found", 400);
     return next(error);
@@ -97,18 +97,44 @@ if(!productCategory){
 res.status(200).json({
   status:'success',
   data:{
-    productCategory
+    productCategory:productCategory
 
   }
 })
 }
 )
 
+//view specific product
+
+const specificProduct =asyncErrorHandler (async(req,res,next)=>{
+const productId =req.params.id
+if(!mongoose.Types.ObjectId.isValid(productId)){
+  res.status(404).json({
+    status:'error',
+    message:'invalid id'
+  })
+}
+const productById = await product.findById(productId)
+console.log(productById);
+if(!productById){
+  const error = new CustomError('not found',404)
+  return next(error)
+}
+res.status(200).json({
+  status:'succes',
+  data:{
+    productById
+  }
+})
+}
+
+)
 
 module.exports = {
   adminLogin,
   allUsers,
   getUserById,
   createProduct,
-  allProduct
+  allProduct,
+  specificProduct
 };

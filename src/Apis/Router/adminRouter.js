@@ -7,6 +7,7 @@ adminRouter.post('/login',(adminController.adminLogin))
 .get('/users',(adminController.allUsers))
 .get('/users/:id',(adminController.getUserById))
 .post('/addProduct',(adminController.createProduct))
-.get('/category/:id',(adminController.allProduct))
+.get('/category/:category',(adminController.allProduct))
+.get('/product/:id',(adminController.specificProduct))
 
 module.exports = adminRouter

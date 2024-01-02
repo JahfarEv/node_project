@@ -14,7 +14,7 @@ const signToken = (id) => {
   });
 };
 
-exports.signup = asyncErrorHandler(async (req, res, next) => {
+exports.signup = asyncErrorHandler(async (req, res) => {
   const newUser = await User.create(req.body);
  
 
@@ -72,14 +72,12 @@ exports.viewProducts = async (req, res) => {
   });
 };
 //Products view by category
-exports.productByCategory = async (req, res) => {
+exports.productByCategory =asyncErrorHandler (async (req, res,next) => {
   const category = req.params.category;
-  const productCategory = await product.findOne(category);
+  const productCategory = await product.find({category});
   if (!productCategory) {
-    res.status(404).json({
-      status: "error",
-      message: "not found",
-    });
+   const error = new customError("not found",404)
+   return next(error)
   }
   res.status(200).json({
     status: "success",
@@ -87,7 +85,7 @@ exports.productByCategory = async (req, res) => {
       productCategory,
     },
   });
-};
+})
 
 // View a specific product
 
@@ -101,7 +99,8 @@ exports.productById = async (req, res,next) => {
   }
  const products = await product.findById(productId)
  if(!products){
-  next(new customError('not found',404))
+  const error = new customError("not found",404)
+  return next(error)
  }
  else{
   res.status(200).json({
@@ -117,13 +116,14 @@ exports.productById = async (req, res,next) => {
 exports.addToCart =asyncErrorHandler (async(req,res,next)=>{
   const userId = req.params.id
   const productId = req.body.product;
-  console.log(productId);
+  //  console.log(productId);
   const checkProduct = await product.findById(productId);
-  // console.log(checkProduct);
+   console.log(checkProduct);
   if(!checkProduct){
-next(new customError('not found',404))
+const error = new customError("not found",404)
+return next(error)
   }
-  const existingCart = await cart.findOne({User:userId});
+  const existingCart = await cart.findOne({user:userId});
 if(existingCart){
   const exProductCart = existingCart.products.indexOf(productId)
   if(exProductCart !== -1){
@@ -153,47 +153,4 @@ if(existingCart){
 
 }
 )
-// Add product to wish list
-exports.wishlist = async(req,res,next)=>{
-  const userrId = req.params.id
-  const itemId = req.body.items
-  const matchProduct = await product.findById(itemId)
 
-  if(!matchProduct){
-    next(new customError('not found',404))
-    console.log(matchProduct);
-
-  }
-  const existingItem = await wishlist.findOne({user:userrId})
-  if(existingItem){
-    const existingItemCart = existingItem.items.indexOf(itemId)
-    if(existingItemCart !== -1){
-      next(new customError("item already exist"))
-    }
-  
-  else{
-existingItem.items.push(itemId)
-existingItem.save()
-
-res.status(200).json({
-  status:'succes',
-  data:{
-    existingItem:existingItem
-  }
-})
-  }
-}
-else{
-  const newWishList = await cart.create({user:userrId,items:itemId})
-  res.status(200).json({
-    status:'succes',
-    data:{
-      newWishList:newWishList
-    }
-  })
-}
-
-
-}
-
-//.module.exports = signup;

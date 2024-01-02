@@ -9,10 +9,10 @@ router.post('/signup',(authController.signup))
 .post('/login',(authController.login))
 .use(verifyToken)
 .get('/viewproducts',(authController.viewProducts))
-.get('/category/:id',(authController.productByCategory))
+.get('/category/:category',(authController.productByCategory))
 .get('/product/:id',(authController.productById))
-.post('/:id/cart',(authController.addToCart))
-.post('/:id/wishlist',(authController.wishlist))
+.post('/cart/:id',(authController.addToCart))
+
 
 
 
