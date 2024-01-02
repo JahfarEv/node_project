@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const customError = require("../../Utils/customError");
 const product = require("../../model/productModel");
 const { default: mongoose } = require("mongoose");
+const cart = require('../../model/addToCart')
+const wishlist = require('../../model/wishList')
 
 
 const signToken = (id) => {
@@ -14,13 +16,13 @@ const signToken = (id) => {
 
 exports.signup = asyncErrorHandler(async (req, res, next) => {
   const newUser = await User.create(req.body);
-  //geneate token
-  // const token = signToken(newUser._id)
+ 
 
   res.status(201).json({
     status: "sucess",
     data: {
       user: newUser,
+      
     },
   });
 });
@@ -37,63 +39,161 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
     return next(error);
   }
   const user = await User.findOne({ email }).select("+password");
-  console.log(user.password);
-  //  const isMatch = user.comparePasswordInDb(password, user.password)
+  
 
   if (!user || !(await user.comparePasswordInDb(password, user.password))) {
     const error = new customError("Invalid Email or Password", 400);
     return next(error);
   }
-
   const token = signToken(user._id);
 
   res.status(200).json({
-    status: "sucess",
+    status: "success",
     token,
     user,
   });
 });
 
 //view products
-exports.viewProducts = async(req,res)=>{
-const products = await product.find()
-if(!products){
-  return res.status(404).json({
-    status:'error',
-    message:'product not found'
+exports.viewProducts = async (req, res) => {
+  const products = await product.find();
+  if (!products) {
+    return res.status(404).json({
+      status: "error",
+      message: "product not found",
+    });
+  }
+  return res.status(200).json({
+    status: "succes",
+    message: "product fetched succesfully",
+    data: {
+      products,
+    },
+  });
+};
+//Products view by category
+exports.productByCategory = async (req, res) => {
+  const category = req.params.category;
+  const productCategory = await product.findOne(category);
+  if (!productCategory) {
+    res.status(404).json({
+      status: "error",
+      message: "not found",
+    });
+  }
+  res.status(200).json({
+    status: "success",
+    data: {
+      productCategory,
+    },
+  });
+};
+
+// View a specific product
+
+exports.productById = async (req, res,next) => {
+  const productId = req.params.id
+  if(!mongoose.Types.ObjectId.isValid(productId)){
+    res.status(404).json({
+      status:'error',
+      message:'invalid id'
+    })
+  }
+ const products = await product.findById(productId)
+ if(!products){
+  next(new customError('not found',404))
+ }
+ else{
+  res.status(200).json({
+    status:'succes',
+    data:{
+      products
+    }
+  })
+ }
+};
+
+//add to cart
+exports.addToCart =asyncErrorHandler (async(req,res,next)=>{
+  const userId = req.params.id
+  const productId = req.body.product;
+  console.log(productId);
+  const checkProduct = await product.findById(productId);
+  // console.log(checkProduct);
+  if(!checkProduct){
+next(new customError('not found',404))
+  }
+  const existingCart = await cart.findOne({User:userId});
+if(existingCart){
+  const exProductCart = existingCart.products.indexOf(productId)
+  if(exProductCart !== -1){
+    next(new customError("already exist"))
+  }
+  else{
+    existingCart.products.push(productId)
+    existingCart.save()
+    res.status(200).json({
+      status:'sucess',
+      data:{
+        existingCart:existingCart
+      }
+    })
+  }
+  
+}else{
+  const newCart = await cart.create({User:userId,products:[productId]})
+  res.status(200).json({
+    status:'success',
+    data:{
+      newCart:newCart
+    }
   })
 }
-return res.status(200).json({
+
+
+}
+)
+// Add product to wish list
+exports.wishlist = async(req,res,next)=>{
+  const userrId = req.params.id
+  const itemId = req.body.items
+  const matchProduct = await product.findById(itemId)
+
+  if(!matchProduct){
+    next(new customError('not found',404))
+    console.log(matchProduct);
+
+  }
+  const existingItem = await wishlist.findOne({user:userrId})
+  if(existingItem){
+    const existingItemCart = existingItem.items.indexOf(itemId)
+    if(existingItemCart !== -1){
+      next(new customError("item already exist"))
+    }
+  
+  else{
+existingItem.items.push(itemId)
+existingItem.save()
+
+res.status(200).json({
   status:'succes',
-  message:'product fetched succesfully',
   data:{
-    products
+    existingItem:existingItem
   }
 })
+  }
+}
+else{
+  const newWishList = await cart.create({user:userrId,items:itemId})
+  res.status(200).json({
+    status:'succes',
+    data:{
+      newWishList:newWishList
+    }
+  })
 }
 
-//View the products by category
 
-// exports.productByCategory = async (req, res) => {
-//   const productCategory = req.params.category
-//   if(!mongoose.Types.ObjectId.isValid(productCategory)){
-//     res.status(404).json({
-//       status:'error',
-//       message:'product not found'
-//     })
-//   }
-//   const products = await product.filter(prdcts=>prdcts.productCategory=== productCategory)
-//   if(!products){
-//     next(new customError("product not found",404))
-//   }
-//   else{
-//     res.status(200).json({
-//       status:'succes',
-//       data:{
-//         products
-//       }
-//     })
-//   }
-  
-// };
+}
+
 //.module.exports = signup;

@@ -70,6 +70,9 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
   }
 });
 
+
+//create products
+
 const createProduct = asyncErrorHandler(async (req, res, next) => {
   const newProduct = await product.create(req.body);
   
@@ -81,32 +84,31 @@ const createProduct = asyncErrorHandler(async (req, res, next) => {
   });
 });
 
-//all products
+//all products by category
+const allProduct = asyncErrorHandler (async(req,res,next)=>{
+const proCtegory = req.params.category
+console.log(proCtegory);
+const productCategory =await product.findOne(proCtegory)
 
-// const allProduct = async (req, res) => {
-//   const products = await product.find();
-//   if (!products) {
-//     return res.status(404).json({
-//       status: "error",
-//       message: "Products not found",
-//     });
-//   }
-//   else{
-//     res.status(200).json({
-//       status:'succes',
-//       data:{
-//         products
-//       },
-//       message:'succesfully fetched products'
-//     })
-//   }
-// }
-// console.log(product);
+if(!productCategory){
+  const error = new CustomError("product not found", 400);
+    return next(error);
+}
+res.status(200).json({
+  status:'success',
+  data:{
+    productCategory
+
+  }
+})
+}
+)
 
 
 module.exports = {
   adminLogin,
   allUsers,
   getUserById,
-  createProduct
+  createProduct,
+  allProduct
 };

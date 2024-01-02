@@ -1,14 +1,22 @@
 const express = require('express');
-const authController = require('../controllers/authController')
+const authController = require('../controllers/authController');
+const verifyToken = require('../middlewares.js/userAuthMiddleware');
 
 const router = express.Router();
 
-router.route('/signup').post(authController.signup);
-router.route('/login').post(authController.login);
-router.route('/viewproducts').get(authController.viewProducts);
+
+router.post('/signup',(authController.signup))
+.post('/login',(authController.login))
+.use(verifyToken)
+.get('/viewproducts',(authController.viewProducts))
+.get('/category/:id',(authController.productByCategory))
+.get('/product/:id',(authController.productById))
+.post('/:id/cart',(authController.addToCart))
+.post('/:id/wishlist',(authController.wishlist))
 
 
-// router.route('/products/:categoryname').get(authController.productByCategory);
+
+
 
 
 
