@@ -75,8 +75,9 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 //create products
 
 const createProduct = asyncErrorHandler(async (req, res) => {
-  const newProduct = await product.create(req.body);
-  
+  const {title,image,price,description,category } = req.body
+  const newProduct = await product.create({title,Image:image,price,description,category});
+  console.log(req.body.image);
   res.status(201).json({
     status: "sucess",
     data: {
