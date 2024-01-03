@@ -5,13 +5,14 @@ const verifyToken = require('../middlewares.js/userAuthMiddleware');
 const router = express.Router();
 
 
-router.post('/signup',(authController.signup))
+router.post('/register',(authController.signup))
 .post('/login',(authController.login))
 .use(verifyToken)
-.get('/viewproducts',(authController.viewProducts))
+.get('/products',(authController.viewProducts))
 .get('/category/:category',(authController.productByCategory))
 .get('/product/:id',(authController.productById))
 .post('/cart/:id',(authController.addToCart))
+.post('/wishlist/:id',(authController.proWishList))
 
 
 

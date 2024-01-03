@@ -5,7 +5,8 @@ const customError = require("../../Utils/customError");
 const product = require("../../model/productModel");
 const { default: mongoose } = require("mongoose");
 const cart = require('../../model/addToCart')
-const wishlist = require('../../model/wishList')
+const wishlist = require('../../model/wishList');
+const user = require("../../model/userModel");
 
 
 const signToken = (id) => {
@@ -141,7 +142,7 @@ if(existingCart){
   }
   
 }else{
-  const newCart = await cart.create({User:userId,products:[productId]})
+  const newCart = await cart.create({user:userId,products:[productId]})
   res.status(200).json({
     status:'success',
     data:{
@@ -153,4 +154,41 @@ if(existingCart){
 
 }
 )
+
+//wishList
+exports.proWishList =async(req,res,next)=>{
+const userId = req.params.id
+const productId = req.body.product
+const checkProduct = await product.findById(productId)
+if(!checkProduct){
+  res.status(404).json({
+    status:'error',
+    message:'not found'
+  })
+}
+const existingCart = await wishlist.findOne({user:userId})
+
+if(existingCart){
+  const existingProductCart = existingCart.items.indexOf(productId)
+
+  if(existingProductCart !== -1){
+next(customError('already exist',404))
+  }
+  existingCart.items.push(productId)
+  existingCart.save()
+  res.status(200).json({
+    status:'succes',
+    data:{
+      existingCart
+    }
+  })
+}
+const newWishList = await wishlist.create({userr:userId,items:[productId]})
+res.status(200).json({
+  status:'succes',
+  data:{
+    newWishList
+  }
+})
+}
 

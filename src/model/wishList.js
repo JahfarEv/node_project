@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const user = require('./userModel')
 const product = require('./productModel')
 const wishlistSchema = new mongoose.Schema({
-    user:{
+    userr:{
         type:mongoose.Schema.Types.ObjectId,
         required:true,
         ref:user
