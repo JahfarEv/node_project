@@ -10,7 +10,7 @@ const user = require("../../model/userModel");
 
 
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.SECRET_STR, {
+  return jwt.sign({ id,isAdmin:false }, process.env.SECRET_STR, {
     expiresIn: process.env.LOGIN_EXPIRES,
   });
 };

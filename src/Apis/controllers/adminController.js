@@ -4,19 +4,24 @@ const CustomError = require("../../Utils/customError");
 const { default: mongoose } = require("mongoose");
 const product = require("../../model/productModel")
 const asyncErrorHandler = require('../../Utils/asyncErrorHandler')
+
+
+
 const adminLogin = async (req, res) => {
   const { email, password } = req.body;
   if (
     email === process.env.ADMIN_EMAIL &&
     password === process.env.ADMIN_PASSWORD
   ) {
-    const token = jwt.sign({ email: email }, process.env.ADMIN_SECRET_STR);
+    const token  = jwt.sign({ email,isAdmin:true }, process.env.SECRET_STR
+      , {
+      expiresIn: process.env.LOGIN_EXPIRES,
+    });
+
     res.status(200).json({
       status: "sucess",
       message: "sucessfully admin login",
-      data: {
-        token,
-      },
+      token
     });
   } else {
     res.status(401).json({
