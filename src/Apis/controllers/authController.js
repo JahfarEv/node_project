@@ -29,15 +29,13 @@ exports.signup = asyncErrorHandler(async (req, res) => {
 });
 
 exports.login = asyncErrorHandler(async (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
+ 
+  
+  const {email,password} = req.body;
 
   if (!email || !password) {
-    const error = new customError(
-      "please provide email ID & password for login In!",
-      400
-    );
-    return next(error);
+    res.status(400).json({status:'error',message:'please provide email & password for login In!'})
+  
   }
   const user = await User.findOne({ email }).select("+password");
   

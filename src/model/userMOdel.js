@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 
-  confrmPassword: {
+  confirmPassword: {
     type: String,
     required: [true, "pls confirm your password"],
     select: false,

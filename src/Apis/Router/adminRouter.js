@@ -8,6 +8,7 @@ adminRouter.post('/login',(adminController.adminLogin))
 .get('/users',(adminController.allUsers))
 .get('/users/:id',(adminController.getUserById))
 .post('/addProduct',uploadCloudinary,(adminController.createProduct))
+.delete('/delete/:id',(adminController.deleteProduct))
 .get('/category/:category',(adminController.allProduct))
 .get('/product/:id',(adminController.specificProduct))
 

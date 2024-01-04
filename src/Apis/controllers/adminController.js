@@ -86,6 +86,40 @@ const createProduct = asyncErrorHandler(async (req, res) => {
   });
 });
 
+//delete product
+
+const deleteProduct = async(req,res)=>{
+const deleteId = req.params.id;
+// console.log(deleteId);
+
+if(!deleteId||!mongoose.Types.ObjectId.isValid(deleteId)){
+  return res.status(404).json({
+    status:'error',
+    message:'invalid product id provided'
+  })
+}
+
+const deleteproduct = await product.findOneAndDelete({ _id:deleteId})
+console.log(deleteproduct);
+if(!deleteproduct){
+  return res.status(404).json({
+    status:'error',
+    message:'product not found'
+  })
+}
+return res.status(200).json({
+  status:'succes',
+  message:'product deleted succesfully',
+  
+})
+}
+
+// update products
+
+const updateProduct = ()=>{
+  
+}
+
 //all products by category
 const allProduct = asyncErrorHandler (async(req,res,next)=>{
 const category = req.params.category
@@ -137,5 +171,6 @@ module.exports = {
   getUserById,
   createProduct,
   allProduct,
-  specificProduct
+  specificProduct,
+  deleteProduct
 };
