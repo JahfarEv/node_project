@@ -1,6 +1,7 @@
 const multer = require('multer')
 const fs =require('fs')
 const path = require('path')
+const cloudinary = require('cloudinary').v2;
 
 const storage = multer.diskStorage({
     destination: path.join(__dirname,'public'),
@@ -12,7 +13,7 @@ const storage = multer.diskStorage({
   
   const upload = multer({ storage})
 
-  const cloudinary = require('cloudinary').v2;
+ 
 
 
 cloudinary.config({

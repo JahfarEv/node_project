@@ -1,5 +1,8 @@
-const jwt =require("jsonwebtoken")
-const verifyToken = (req,res,next)=>{
+const jwt =require("jsonwebtoken");
+const user = require("../../model/userModel");
+
+
+const verifyToken = async(req,res,next)=>{
     const athHeader = req.headers['authorization'];
     if(!athHeader){
         res.status(404).json({
@@ -8,18 +11,26 @@ const verifyToken = (req,res,next)=>{
         })
     }
     const token = athHeader.split(' ')[1]
-    
-    jwt.verify(token,process.env.SECRET_STR,(err,decode)=>{
-        if(err){
-            res.status(401).json({
-                status:'error',
-                message:'unautherized'
-            })
-        }
-        req.email = decode.email
-        next()
-        })
 
+    if(!token){
+        res.status(404).json({
+            status:"error",
+            message:"your not loged in"
+        })
+    }
+    
+   const verToken = await jwt.verify(token,process.env.SECRET_STR)
+        
+    const userId = verToken.id
+    const checkById =await user.findById(userId)
+    if(!checkById){
+        res.status(404).json({
+            status:'error',
+            message:'user does not exist'
+        })
+    }
+     
+next()
 
 }
 module.exports = verifyToken

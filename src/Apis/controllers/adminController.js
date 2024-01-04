@@ -77,14 +77,15 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 const createProduct = asyncErrorHandler(async (req, res) => {
   const {title,image,price,description,category } = req.body
   const newProduct = await product.create({title,Image:image,price,description,category});
-  console.log(req.body.image);
+  console.log(image);
   res.status(201).json({
     status: "sucess",
     data: {
       product: newProduct,
     },
   });
-});
+}
+);
 
 //delete product
 
@@ -116,8 +117,28 @@ return res.status(200).json({
 
 // update products
 
-const updateProduct = ()=>{
-  
+const updateProduct = async(req,res)=>{
+  const id = req.params.id
+  if(!id||!mongoose.Types.ObjectId.isValid(id)){
+    res.status(404).json({
+      status:'error',
+      message:'invalid product id'
+    })
+  }
+  const updatedProduct = await product.findByIdAndUpdate({_id:id})
+  if(!updatedProduct){
+    res.status(404).json({
+      status:'error',
+      message:'product not found'
+    })
+  }
+  res.status(200).json({
+    status:'succes',
+    message:'product updated',
+    data:{
+      product:updatedProduct
+    }
+  })
 }
 
 //all products by category
@@ -172,5 +193,6 @@ module.exports = {
   createProduct,
   allProduct,
   specificProduct,
-  deleteProduct
+  deleteProduct,
+  updateProduct
 };
