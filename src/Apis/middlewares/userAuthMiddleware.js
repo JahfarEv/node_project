@@ -26,7 +26,7 @@ const verifyToken = async(req,res,next)=>{
     if(!checkById){
         res.status(404).json({
             status:'error',
-            message:'user does not exist'
+            message:'token not found'
         })
     }
      

@@ -28,5 +28,7 @@ if(!isAdmin){
         message:'token not correct'
     })
 }
+next()
 }
+
 module.exports = admToken

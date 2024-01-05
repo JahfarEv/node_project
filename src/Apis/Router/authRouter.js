@@ -12,7 +12,9 @@ router.post('/register',(authController.signup))
 .get('/category/:category',(authController.productByCategory))
 .get('/product/:id',(authController.productById))
 .post('/cart/:id',(authController.addToCart))
+.get('/viewcart',(authController.Cart))
 .post('/wishlist/:id',(authController.proWishList))
+.get('/viewlist',(authController.wishList))
 
 
 
