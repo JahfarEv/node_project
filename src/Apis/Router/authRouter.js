@@ -9,12 +9,13 @@ router.post('/register',(authController.signup))
 .post('/login',(authController.login))
 .use(verifyToken)
 .get('/products',(authController.viewProducts))
-.get('/category/:category',(authController.productByCategory))
+.get('/category/:categoryname',(authController.productByCategory))
 .get('/product/:id',(authController.productById))
 .post('/cart/:id',(authController.addToCart))
 .get('/viewcart',(authController.Cart))
 .post('/wishlist/:id',(authController.proWishList))
 .get('/viewlist',(authController.wishList))
+.post('/payments/:id',(authController.payments))
 
 
 

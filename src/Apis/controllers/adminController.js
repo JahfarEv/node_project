@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
 const user = require("../../model/userModel");
-const CustomError = require("../../Utils/customError");
+const CustomError = require("../../utils/customError");
 const { default: mongoose } = require("mongoose");
 const product = require("../../model/productModel")
-const asyncErrorHandler = require('../../Utils/asyncErrorHandler')
+const asyncErrorHandler = require('../../utils/asyncErrorHandler')
 
 
 
@@ -80,8 +80,8 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 //create products
 
 const createProduct = asyncErrorHandler(async (req, res) => {
-  const {title,image,price,description,category } = req.body
-  const newProduct = await product.create({title,Image:image,price,description,category});
+  const {title,image,price,description,categoryname } = req.body;
+  const newProduct = await product.create({title,Image:image,price,description,categoryname});
   console.log(image);
   res.status(201).json({
     status: "sucess",
@@ -94,7 +94,7 @@ const createProduct = asyncErrorHandler(async (req, res) => {
 
 //delete product
 
-const deleteProduct = async(req,res)=>{
+const deleteProduct =asyncErrorHandler (async(req,res)=>{
 const deleteId = req.params.id;
 // console.log(deleteId);
 
@@ -119,10 +119,11 @@ return res.status(200).json({
   
 })
 }
+)
 
 // update products
 
-const updateProduct = async(req,res)=>{
+const updateProduct =asyncErrorHandler (async(req,res)=>{
   const id = req.params.id
   if(!id||!mongoose.Types.ObjectId.isValid(id)){
     res.status(404).json({
@@ -145,6 +146,7 @@ const updateProduct = async(req,res)=>{
     }
   })
 }
+)
 
 //all products by category
 const allProduct = asyncErrorHandler (async(req,res,next)=>{

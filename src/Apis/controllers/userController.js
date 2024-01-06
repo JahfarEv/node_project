@@ -1,12 +1,13 @@
 const User = require("../../model/userModel");
-const asyncErrorHandler = require("../../Utils/asyncErrorHandler");
+const asyncErrorHandler = require("../../utils/asyncErrorHandler");
 const jwt = require("jsonwebtoken");
-const customError = require("../../Utils/customError");
+const customError = require("../../utils/customError");
 const product = require("../../model/productModel");
 const { default: mongoose } = require("mongoose");
 const cart = require("../../model/addToCart");
 const wishlist = require("../../model/wishList");
 const user = require("../../model/userModel");
+const { Stripe } = require("stripe");
 
 const signToken = (id) => {
   return jwt.sign({ id, isAdmin: false }, process.env.SECRET_STR, {
@@ -29,12 +30,10 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res
-      .status(400)
-      .json({
-        status: "error",
-        message: "please provide email & password for login In!",
-      });
+    res.status(400).json({
+      status: "error",
+      message: "please provide email & password for login In!",
+    });
   }
   const user = await User.findOne({ email }).select("+password");
 
@@ -52,7 +51,7 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
 });
 
 //view products
-exports.viewProducts = async (req, res) => {
+exports.viewProducts = asyncErrorHandler(async (req, res) => {
   const products = await product.find();
   if (!products) {
     return res.status(404).json({
@@ -67,11 +66,11 @@ exports.viewProducts = async (req, res) => {
       products,
     },
   });
-};
+});
 //Products view by category
 exports.productByCategory = asyncErrorHandler(async (req, res, next) => {
-  const category = req.params.category;
-  const productCategory = await product.find({ category });
+  const categoryName = req.params.categoryname;
+  const productCategory = await product.find({ category: categoryName });
   if (!productCategory) {
     const error = new customError("not found", 404);
     return next(error);
@@ -86,7 +85,7 @@ exports.productByCategory = asyncErrorHandler(async (req, res, next) => {
 
 // View a specific product
 
-exports.productById = async (req, res, next) => {
+exports.productById = asyncErrorHandler(async (req, res, next) => {
   const productId = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     res.status(404).json({
@@ -106,7 +105,7 @@ exports.productById = async (req, res, next) => {
       },
     });
   }
-};
+});
 
 //add to cart
 exports.addToCart = asyncErrorHandler(async (req, res, next) => {
@@ -147,7 +146,7 @@ exports.addToCart = asyncErrorHandler(async (req, res, next) => {
 
 //view cart
 
-exports.Cart = async (req, res) => {
+exports.Cart = asyncErrorHandler(async (req, res) => {
   const viewCart = await cart.find();
   if (!viewCart) {
     res.status(404).json({
@@ -161,10 +160,10 @@ exports.Cart = async (req, res) => {
       viewCart,
     },
   });
-};
+});
 
 //Add to wishList
-exports.proWishList = async (req, res, next) => {
+exports.proWishList = asyncErrorHandler(async (req, res, next) => {
   const userId = req.params.id;
   const productId = req.body.product;
   const checkProduct = await product.findById(productId);
@@ -201,27 +200,85 @@ exports.proWishList = async (req, res, next) => {
       newWishList,
     },
   });
-};
+});
 
 //view wish list
 
-exports.wishList = async(req,res)=>{
-const viewWishList = await wishlist.find()
+exports.wishList = asyncErrorHandler(async (req, res) => {
+  const viewWishList = await wishlist.find();
 
-if(!viewWishList){
-res.status(404).json({
-  status:"error",
-  message:"wish list is empty"
-})
-}
-res.status(200).json({
-  status:'succes',
-  data:{
-    viewWishList
+  if (!viewWishList) {
+    res.status(404).json({
+      status: "error",
+      message: "wish list is empty",
+    });
   }
-})
-}
-
+  res.status(200).json({
+    status: "succes",
+    data: {
+      viewWishList,
+    },
+  });
+});
 //payments
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+exports.payments = asyncErrorHandler(async (req, res) => {
+  const userId = req.params.id;
+  const userr = await user.findById({ _id: userId });
+  const cartMdl = await cart.findOne({ user: userId });
+  const prod = await product.find({ _id: cartMdl.products });
 
+  if (!userr) {
+    res.status(200).json({
+      status: "succes",
+      message: "your cart is empty",
+      data: [],
+    });
+  }
+
+  const lineItem = prod.map((item) => {
+    return {
+      price_data: {
+        currency: "inr",
+        product_data: {
+          name: item.title,
+          description: item.description,
+        },
+        unit_amount: math.round(item.price * 100),
+      },
+      quandity: 1,
+    };
+  });
+
+  const customer = await stripe.customers.create({
+    name: userr.name,
+    address: {
+      line1: "ettuveettil",
+      city: "vengara",
+      state: "kerala",
+      postal_code: "123456",
+      country: "IN",
+    },
+  });
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: lineItem,
+    mode: "payment",
+    success_url: "http://localhost:4000/api/users/payment/success",
+    cancel_url: "http://localhost:4000/api/users/payment/cancel",
+  });
+
+  if(session){
+    res.status(200).json({
+      status:'succes',
+      session:session.url
+    })
+  }
+  else{
+    res.status(500).json({
+      status:'failed'
+    })
+  }
+});
