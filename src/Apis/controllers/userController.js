@@ -125,6 +125,7 @@ exports.addToCart = asyncErrorHandler(async (req, res, next) => {
       next(new customError("already exist"));
     } else {
       existingCart.products.push(productId);
+      existingCart.totalPrice += checkProduct.price
       existingCart.save();
       res.status(200).json({
         status: "sucess",
@@ -240,12 +241,12 @@ exports.payments = asyncErrorHandler(async (req, res) => {
   const lineItem = prod.map((item) => {
     return {
       price_data: {
-        currency: "inr",
+        currency: 'inr',
         product_data: {
           name: item.title,
           description: item.description,
         },
-        unit_amount: math.round(item.price * 100),
+        unit_amount: Math.round(item.price * 100),
       },
       quandity: 1,
     };
@@ -263,11 +264,11 @@ exports.payments = asyncErrorHandler(async (req, res) => {
   });
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
+    payment_method_types: ['card'],
     line_items: lineItem,
-    mode: "payment",
-    success_url: "http://localhost:4000/api/users/payment/success",
-    cancel_url: "http://localhost:4000/api/users/payment/cancel",
+    mode: 'payment',
+    success_url: 'http://localhost:4000/api/users/payment/success',
+    cancel_url: 'http://localhost:4000/api/users/payment/cancel'
   });
 
   if(session){

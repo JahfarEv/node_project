@@ -15,7 +15,7 @@ const cartModel = new mongoose.Schema({
         ref:product
 
     }],
-    price:{
+    totalPrice:{
 
         type:Number,
         default:0
