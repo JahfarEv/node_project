@@ -7,7 +7,7 @@ const asyncErrorHandler = require('../../utils/asyncErrorHandler')
 
 
 
-const adminLogin = async (req, res) => {
+const adminLogin =asyncErrorHandler (async (req, res) => {
   const { email, password } = req.body;
   if (
     email === process.env.ADMIN_EMAIL &&
@@ -29,7 +29,8 @@ const adminLogin = async (req, res) => {
       message: "invalid admin",
     });
   }
-};
+}
+);
 
 //all users
 
@@ -64,8 +65,11 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 
   const users = await user.findById(userId);
   if (!users) {
-    const error = new CustomError('not found',404)
-    return next(error)
+   res.status(404).json({
+    status:'error',
+    message:'user not found'
+
+   })
   } else {
     res.status(200).json({
       status: "success",
@@ -80,8 +84,8 @@ const getUserById = asyncErrorHandler(async (req, res, next) => {
 //create products
 
 const createProduct = asyncErrorHandler(async (req, res) => {
-  const {title,image,price,description,categoryname } = req.body;
-  const newProduct = await product.create({title,Image:image,price,description,categoryname});
+  const {title,image,price,description,category } = req.body;
+  const newProduct = await product.create({title,Image:image,price,description,category});
   console.log(image);
   res.status(201).json({
     status: "sucess",
@@ -154,8 +158,10 @@ const category = req.params.category
 const productCategory =await product.find({category})
 console.log(productCategory);
 if(!productCategory){
-  const error = new CustomError("product not found", 400);
-    return next(error);
+ res.status(404).json({
+  status:'failed',
+  message:'product not found'
+ })
 }
 res.status(200).json({
   status:'success',
@@ -180,8 +186,10 @@ if(!mongoose.Types.ObjectId.isValid(productId)){
 const productById = await product.findById(productId)
 console.log(productById);
 if(!productById){
-  const error = new CustomError('not found',404)
-  return next(error)
+  res.status(404).json({
+    status:'error',
+    message:'not found'
+  })
 }
 res.status(200).json({
   status:'succes',

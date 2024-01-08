@@ -68,19 +68,25 @@ exports.viewProducts = asyncErrorHandler(async (req, res) => {
   });
 });
 //Products view by category
-exports.productByCategory = asyncErrorHandler(async (req, res, next) => {
+exports.productByCategory = asyncErrorHandler(async (req, res) => {
   const categoryName = req.params.categoryname;
-  const productCategory = await product.find({ category: categoryName });
-  if (!productCategory) {
-    const error = new customError("not found", 404);
-    return next(error);
-  }
+  // console.log(categoryName);
+  const productCategory = await product.find({ category : categoryName });
+  console.log(productCategory);
+ 
+ if (productCategory.length === 0 ) {
+     return res.status(404).json({
+      status:'error',
+      message:'product not found'
+    })
+  }else{
   res.status(200).json({
     status: "success",
     data: {
-      productCategory,
+      product:productCategory,
     },
   });
+}
 });
 
 // View a specific product
@@ -125,7 +131,7 @@ exports.addToCart = asyncErrorHandler(async (req, res, next) => {
       next(new customError("already exist"));
     } else {
       existingCart.products.push(productId);
-      existingCart.totalPrice += checkProduct.price
+      existingCart.totalPrice += checkProduct.price;
       existingCart.save();
       res.status(200).json({
         status: "sucess",
@@ -161,6 +167,31 @@ exports.Cart = asyncErrorHandler(async (req, res) => {
       viewCart,
     },
   });
+});
+
+//Delete products from cart
+
+exports.deleteFromCart =asyncErrorHandler (async (req, res) => {
+  const userId = req.params.id;
+  const productId = req.body.product;
+
+  const findCart = await cart.findOne({ user: userId });
+
+  if (!findCart) {
+    res.status(404).json({
+      status: "failed",
+      message: "not found",
+    });
+  }
+  const index = findCart.products.indexOf(productId);
+  const removeProduct = findCart.products[index];
+  findCart.products.splice(removeProduct, 1);
+
+  await findCart.save();
+  res.status(200).json({
+    status:'success',
+    
+  })
 });
 
 //Add to wishList
@@ -229,7 +260,6 @@ exports.payments = asyncErrorHandler(async (req, res) => {
   const userr = await user.findById({ _id: userId });
   const cartMdl = await cart.findOne({ user: userId });
   const prod = await product.find({ _id: cartMdl.products });
-
   if (!userr) {
     res.status(200).json({
       status: "succes",
@@ -237,20 +267,6 @@ exports.payments = asyncErrorHandler(async (req, res) => {
       data: [],
     });
   }
-
-  const lineItem = prod.map((item) => {
-    return {
-      price_data: {
-        currency: 'inr',
-        product_data: {
-          name: item.title,
-          description: item.description,
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quandity: 1,
-    };
-  });
 
   const customer = await stripe.customers.create({
     name: userr.name,
@@ -264,22 +280,37 @@ exports.payments = asyncErrorHandler(async (req, res) => {
   });
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: lineItem,
-    mode: 'payment',
-    success_url: 'http://localhost:4000/api/users/payment/success',
-    cancel_url: 'http://localhost:4000/api/users/payment/cancel'
+    payment_method_types: ["card"],
+    line_items: prod.map((item) => {
+      return {
+        price_data: {
+          currency: "inr",
+          product_data: {
+            name: item.title,
+            description: item.description,
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: 1,
+      };
+    }),
+    mode: "payment",
+    success_url: "http://localhost:4000/api/users/payment/success",
+    cancel_url: "http://localhost:4000/api/users/payment/cancel",
   });
 
-  if(session){
+  if (session) {
     res.status(200).json({
-      status:'succes',
-      session:session.url
-    })
-  }
-  else{
+      status: "succes",
+      session: session.url,
+    });
+  } else {
     res.status(500).json({
-      status:'failed'
-    })
+      status: "failed",
+    });
   }
 });
+
+exports.paymentSuccess = (req, res) => {
+  res.send("<h1>success</h1>");
+};
