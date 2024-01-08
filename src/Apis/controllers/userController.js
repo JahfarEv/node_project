@@ -71,22 +71,22 @@ exports.viewProducts = asyncErrorHandler(async (req, res) => {
 exports.productByCategory = asyncErrorHandler(async (req, res) => {
   const categoryName = req.params.categoryname;
   // console.log(categoryName);
-  const productCategory = await product.find({ category : categoryName });
+  const productCategory = await product.find({ category: categoryName });
   console.log(productCategory);
- 
- if (productCategory.length === 0 ) {
-     return res.status(404).json({
-      status:'error',
-      message:'product not found'
-    })
-  }else{
-  res.status(200).json({
-    status: "success",
-    data: {
-      product:productCategory,
-    },
-  });
-}
+
+  if (productCategory.length === 0) {
+    return res.status(404).json({
+      status: "error",
+      message: "product not found",
+    });
+  } else {
+    res.status(200).json({
+      status: "success",
+      data: {
+        product: productCategory,
+      },
+    });
+  }
 });
 
 // View a specific product
@@ -171,7 +171,7 @@ exports.Cart = asyncErrorHandler(async (req, res) => {
 
 //Delete products from cart
 
-exports.deleteFromCart =asyncErrorHandler (async (req, res) => {
+exports.deleteFromCart = asyncErrorHandler(async (req, res) => {
   const userId = req.params.id;
   const productId = req.body.product;
 
@@ -189,9 +189,8 @@ exports.deleteFromCart =asyncErrorHandler (async (req, res) => {
 
   await findCart.save();
   res.status(200).json({
-    status:'success',
-    
-  })
+    status: "success",
+  });
 });
 
 //Add to wishList
@@ -252,6 +251,30 @@ exports.wishList = asyncErrorHandler(async (req, res) => {
     },
   });
 });
+
+//order products
+
+ exports.orderdProduct = async (req, res) => {
+  const userId = req.params.id
+  const finddCart = await cart.findOne({userId})
+  console.log(finddCart);
+  const session = await orderProduct(finddCart)
+  
+
+  if(session){
+    await cart.deleteOne({user:userId})
+    res.status(200).json({
+      status:'success',
+      session:session.url
+    })
+  }
+  else{
+    res.status(500).json({
+      status:'failed'
+    })
+  }
+};
+
 //payments
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

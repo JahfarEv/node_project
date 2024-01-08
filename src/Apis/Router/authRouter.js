@@ -17,6 +17,7 @@ router.post('/register',(authController.signup))
 .post('/cart/remove/:id',(authController.deleteFromCart))
 .post('/wishlist/:id',(authController.proWishList))
 .get('/viewlist',(authController.wishList))
+.post('/orders/:id',authController.orderdProduct)
 .post('/payments/:id',(authController.payments))
 
 
