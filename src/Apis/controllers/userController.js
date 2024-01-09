@@ -1,5 +1,5 @@
 const User = require("../../model/userModel");
-const asyncErrorHandler = require("../../utils/asyncErrorHandler");
+const asyncErrorHandler = require("../../Utils/asyncErrorHandler");
 const jwt = require("jsonwebtoken");
 const customError = require("../../utils/customError");
 const product = require("../../model/productModel");
@@ -8,6 +8,7 @@ const cart = require("../../model/addToCart");
 const wishlist = require("../../model/wishList");
 const user = require("../../model/userModel");
 const { Stripe } = require("stripe");
+const orders = require("../../model/orderSchema");
 
 const signToken = (id) => {
   return jwt.sign({ id, isAdmin: false }, process.env.SECRET_STR, {
@@ -38,8 +39,10 @@ exports.login = asyncErrorHandler(async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
 
   if (!user || !(await user.comparePasswordInDb(password, user.password))) {
-    const error = new customError("Invalid Email or Password", 400);
-    return next(error);
+    res.status(500).json({
+      status: "error",
+      message: "invalid email or password",
+    });
   }
   const token = signToken(user._id);
 
@@ -252,29 +255,6 @@ exports.wishList = asyncErrorHandler(async (req, res) => {
   });
 });
 
-//order products
-
- exports.orderdProduct = async (req, res) => {
-  const userId = req.params.id
-  const finddCart = await cart.findOne({userId})
-  console.log(finddCart);
-  const session = await orderProduct(finddCart)
-  
-
-  if(session){
-    await cart.deleteOne({user:userId})
-    res.status(200).json({
-      status:'success',
-      session:session.url
-    })
-  }
-  else{
-    res.status(500).json({
-      status:'failed'
-    })
-  }
-};
-
 //payments
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -323,16 +303,27 @@ exports.payments = asyncErrorHandler(async (req, res) => {
   });
 
   if (session) {
+    const order = new orders ({
+      usr:cartMdl.user,
+      prodts:prod,
+      order_Id:session.id,
+      total_price:cartMdl.totalPrice,
+      total_items:cartMdl.product.length,
+      order_status:session.payment_status
+    })
+
+    await order.save()
     res.status(200).json({
-      status: "succes",
-      session: session.url,
-    });
-  } else {
-    res.status(500).json({
-      status: "failed",
-    });
+      status:'success',
+      session:session.url
+    })
   }
-});
+  else{
+    res.status(404).json({
+      status:failed
+    })
+  }
+})
 
 exports.paymentSuccess = (req, res) => {
   res.send("<h1>success</h1>");
