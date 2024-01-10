@@ -4,7 +4,8 @@ const productModel = new mongoose.Schema({
     Image:String,
     price:{type : Number , required:true},
     description: String,
-    category:String
+    category:String,
+    quantity:Number
 
 });
 

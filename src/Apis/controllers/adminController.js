@@ -85,7 +85,6 @@ const createProduct = asyncErrorHandler(async (req, res) => {
     description,
     category,
   });
-  console.log(image);
   res.status(201).json({
     status: "sucess",
     data: {

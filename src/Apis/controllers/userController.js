@@ -73,7 +73,7 @@ exports.viewProducts = asyncErrorHandler(async (req, res) => {
 //Products view by category
 exports.productByCategory = asyncErrorHandler(async (req, res) => {
   const categoryName = req.params.categoryname;
-  // console.log(categoryName);
+ 
   const productCategory = await product.find({ category: categoryName });
   console.log(productCategory);
 
@@ -120,26 +120,34 @@ exports.productById = asyncErrorHandler(async (req, res, next) => {
 exports.addToCart = asyncErrorHandler(async (req, res, next) => {
   const userId = req.params.id;
   const productId = req.body.product;
-  //  console.log(productId);
   const checkProduct = await product.findById(productId);
   console.log(checkProduct);
   if (!checkProduct) {
-    const error = new customError("not found", 404);
-    return next(error);
+    res.status(404).json({
+      status:'error',
+      message:'not found'
+    })
   }
-  const existingCart = await cart.findOne({ user: userId });
-  if (existingCart) {
-    const exProductCart = existingCart.products.indexOf(productId);
+  let newExistingCart = await cart.findOne({ user: userId });
+  if (newExistingCart) {
+    let exProductCart = newExistingCart.products.indexOf(productId);
+    console.log(exProductCart);
     if (exProductCart !== -1) {
-      next(new customError("already exist"));
+    newExistingCart.quantity += 1
+    console.log(newExistingCart.quantity);
+      res.status(500).json({
+        status:'error',
+        message:'product allready exist'
+      })
     } else {
-      existingCart.products.push(productId);
-      existingCart.totalPrice += checkProduct.price;
-      existingCart.save();
+      newExistingCart.products.push(productId);
+      newExistingCart.totalPrice += checkProduct.price;
+      newExistingCart.quantity+=1
+      newExistingCart.save();
       res.status(200).json({
-        status: "sucess",
+        status: "success",
         data: {
-          existingCart: existingCart,
+          existingCart: newExistingCart,
         },
       });
     }
@@ -261,8 +269,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 exports.payments = asyncErrorHandler(async (req, res) => {
   const userId = req.params.id;
   const userr = await user.findById({ _id: userId });
-  const cartMdl = await cart.findOne({ user: userId });
-  const prod = await product.find({ _id: cartMdl.products });
+  const findCart = await cart.findOne({ user: userId });
+  const prod = await product.find({ _id: findCart.products });
   if (!userr) {
     res.status(200).json({
       status: "succes",
@@ -304,11 +312,11 @@ exports.payments = asyncErrorHandler(async (req, res) => {
 
   if (session) {
     const order = new orders ({
-      usr:cartMdl.user,
+      usr:findCart.user,
       prodts:prod,
       order_Id:session.id,
-      total_price:cartMdl.totalPrice,
-      total_items:cartMdl.product.length,
+      total_Price:findCart.totalPrice,
+      total_Items:findCart.products.length,
       order_status:session.payment_status
     })
 
