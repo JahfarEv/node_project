@@ -97,15 +97,17 @@ exports.productByCategory = asyncErrorHandler(async (req, res) => {
 exports.productById = asyncErrorHandler(async (req, res, next) => {
   const productId = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(productId)) {
-    res.status(404).json({
+    res.status(500).json({
       status: "error",
       message: "invalid id",
     });
   }
   const products = await product.findById(productId);
   if (!products) {
-    const error = new customError("not found", 404);
-    return next(error);
+   res.status(500).json({
+    status:'error',
+    message:'invalid id'
+   })
   } else {
     res.status(200).json({
       status: "succes",
